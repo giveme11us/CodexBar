@@ -29,6 +29,14 @@ extension StatusItemController {
                     self.providerStoreIconObservationSignature(for: $0.instanceID, showBrandPercent: showBrandPercent)
                 }
                 .joined(separator: "||")
+            // Standalone plugin status items follow their own snapshot/error/source changes so the
+            // store-icon observer re-renders them even though they are not first-party providers.
+            let pluginSignatures = self.userPluginStatusItemObservationSignatures(showBrandPercent: showBrandPercent)
+            if !pluginSignatures.isEmpty {
+                providerSignatures = ([providerSignatures] + pluginSignatures)
+                    .filter { !$0.isEmpty }
+                    .joined(separator: "||")
+            }
         }
         return [
             "merge=\(mergeIcons ? "1" : "0")",
@@ -45,12 +53,33 @@ extension StatusItemController {
         ].joined(separator: "|")
     }
 
+    /// Signatures for the vended standalone plugin status items, signed by item presence: these are
+    /// exactly the items on screen (eligibility is enforced by `updateVisibility`, which removes an
+    /// item the moment it lapses). Each signature resolves the plugin's own "Menu bar metric"
+    /// preference so the observer covers exactly what the item renders.
+    func userPluginStatusItemObservationSignatures(showBrandPercent: Bool) -> [String] {
+        self.statusItems.keys
+            .filter { $0.firstPartyProvider == nil && UserProviderPluginRegistry.plugin(for: $0) != nil }
+            .sorted { $0.rawValue < $1.rawValue }
+            .map { instanceID in
+                self.providerStoreIconObservationSignature(
+                    for: instanceID,
+                    showBrandPercent: showBrandPercent,
+                    preference: Self.userPluginMenuBarMetricPreference(
+                        layout: self.settings.menuBarLayout(forPlugin: instanceID)))
+            }
+    }
+
     private func providerStoreIconObservationSignature(
-        for instanceID: ProviderInstanceID, showBrandPercent: Bool) -> String
+        for instanceID: ProviderInstanceID,
+        showBrandPercent: Bool,
+        preference: MenuBarPercentWindowPreference = .automatic) -> String
     {
         guard let provider = instanceID.firstPartyProvider else {
             let percent = Self.pluginSwitcherMetricPercent(
-                snapshot: self.store.menuBarSnapshot(for: instanceID), showUsed: self.settings.usageBarsShowUsed)
+                snapshot: self.store.menuBarSnapshot(for: instanceID),
+                showUsed: self.settings.usageBarsShowUsed,
+                preference: preference)
             let source = UserProviderPluginRegistry.plugin(for: instanceID)?.sourceHash ?? ""
             return "\(instanceID.rawValue)|percent=\(Self.iconSignatureValue(percent))" +
                 "|error=\(self.store.errors[instanceID] != nil)|source=\(source)"

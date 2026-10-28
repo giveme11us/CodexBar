@@ -152,6 +152,9 @@ struct PluginsPane: View {
                 instanceID: plugin.manifest.id,
                 settings: self.settings,
                 snapshot: self.store.snapshot(for: plugin.manifest.id))
+            if Self.supportsSeparateStatusItem(plugin) {
+                Toggle(L("Show as separate menu bar icon"), isOn: self.topLevelStatusItemBinding(plugin.manifest.id))
+            }
             if let error = self.store.errors[plugin.manifest.id] {
                 Label(error, systemImage: "exclamationmark.triangle.fill")
                     .font(.callout)
@@ -280,6 +283,7 @@ struct PluginsPane: View {
             if let plugin = request.plugin {
                 try self.store.deleteUserPlugin(plugin)
                 self.settings.removeMenuBarLayoutOverride(forInstanceID: plugin.manifest.id)
+                self.settings.setPluginTopLevelStatusItemEnabled(plugin.manifest.id, enabled: false)
             } else if FileManager.default.fileExists(atPath: request.fileURL.path) {
                 try FileManager.default.removeItem(at: request.fileURL)
             }
@@ -295,6 +299,18 @@ struct PluginsPane: View {
         Binding(
             get: { self.settings.isPluginEnabled(instanceID) },
             set: { self.settings.setPluginEnabled(instanceID, enabled: $0) })
+    }
+
+    /// Separate menu-bar items exist only for top-level dynamic user plugins; bundled providers
+    /// already own their regular provider item with Merge Icons disabled.
+    static func supportsSeparateStatusItem(_ plugin: UserProviderPlugin) -> Bool {
+        plugin.manifest.topLevel && plugin.manifest.id.firstPartyProvider == nil
+    }
+
+    private func topLevelStatusItemBinding(_ instanceID: ProviderInstanceID) -> Binding<Bool> {
+        Binding(
+            get: { self.settings.isPluginTopLevelStatusItemEnabled(instanceID) },
+            set: { self.settings.setPluginTopLevelStatusItemEnabled(instanceID, enabled: $0) })
     }
 
     private func settingBinding(

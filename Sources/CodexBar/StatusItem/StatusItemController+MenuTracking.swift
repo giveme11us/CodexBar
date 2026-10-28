@@ -283,7 +283,10 @@ extension StatusItemController {
         append(self.statusItem.menu)
         append(self.mergedMenu)
         append(self.fallbackMenu)
-        for item in self.statusItems.values {
+        for (instanceID, item) in self.statusItems {
+            // Standalone plugin status items own card menus outside the provider pipeline; closed-menu
+            // preparation must never repopulate them with provider content.
+            if instanceID.firstPartyProvider == nil { continue }
             append(item.menu)
         }
         for menu in self.providerMenus.values {

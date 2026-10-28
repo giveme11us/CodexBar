@@ -98,6 +98,11 @@ extension StatusItemController {
         self.mergedSwitcherContentCaches.removeAll(keepingCapacity: false)
         self.menuProviders.removeAll(keepingCapacity: false)
         self.menuReadinessSignatures.removeAll(keepingCapacity: false)
+        for menu in self.pluginStatusItemMenus.values {
+            menu.delegate = nil
+        }
+        self.pluginStatusItemMenus.removeAll(keepingCapacity: false)
+        self.pluginStatusItemMenuDelegates.removeAll(keepingCapacity: false)
         self.menuIdentitySignatures.removeAll(keepingCapacity: false)
         self.providerMenus.removeAll(keepingCapacity: false)
         self.mergedMenu = nil

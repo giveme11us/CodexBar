@@ -325,6 +325,7 @@ extension StatusItemController {
             for provider in self.store.enabledFirstPartyProvidersForDisplay() {
                 _ = self.applyIcon(for: provider, phase: nil)
             }
+            self.refreshUserPluginStatusItemContentForColorMode()
         }
     }
 }

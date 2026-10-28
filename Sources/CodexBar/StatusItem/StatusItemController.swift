@@ -53,6 +53,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     enum StatusItemIdentity {
         case merged
         case provider(ProviderInstanceID)
+        case userPlugin(ProviderInstanceID)
 
         var autosaveName: String {
             switch self {
@@ -60,6 +61,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
                 "codexbar-merged"
             case let .provider(provider):
                 "codexbar-\(provider.rawValue)"
+            case let .userPlugin(instanceID):
+                "codexbar-plugin-\(instanceID.rawValue)"
             }
         }
 
@@ -69,6 +72,8 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
                 StatusItemController.statusItemAccessibilityIdentifierPrefix
             case let .provider(provider):
                 "\(StatusItemController.statusItemAccessibilityIdentifierPrefix).\(provider.rawValue)"
+            case let .userPlugin(instanceID):
+                "\(StatusItemController.statusItemAccessibilityIdentifierPrefix).plugin.\(instanceID.rawValue)"
             }
         }
     }
@@ -142,6 +147,11 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
     let menuRefreshEnabledForController: Bool
     var statusItem: NSStatusItem
     var statusItems: [ProviderInstanceID: NSStatusItem] = [:]
+    /// Standalone plugin status-item menus with their `NSMenuDelegate` (card content only; never
+    /// wired into the provider menu pipeline). Keyed by plugin instance ID; see
+    /// `StatusItemController+UserPlugins.swift`.
+    var pluginStatusItemMenus: [ProviderInstanceID: NSMenu] = [:]
+    var pluginStatusItemMenuDelegates: [ProviderInstanceID: UserPluginStatusItemMenuDelegate] = [:]
     /// App intent survives Tahoe changing `NSStatusItem.isVisible` after Control Center rejects its scene.
     var expectedVisibleStatusItemAutosaveNames: Set<String> = []
     var lastMenuProvider: ProviderInstanceID?
@@ -738,6 +748,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
             self.attachMenus()
         } else {
             UsageProvider.allCases.forEach { self.applyIcon(for: $0, phase: phase) }
+            self.applyUserPluginStatusItemIcons(phase: phase)
             self.attachMenus(fallback: self.fallbackProvider)
         }
         self.updateAnimationState()
@@ -801,6 +812,7 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
                     self.removeProviderStatusItem(for: provider)
                 }
             }
+            self.syncUserPluginStatusItems(expectedVisibleAutosaveNames: &expectedVisibleAutosaveNames)
             self.attachMenus(fallback: fallback)
         }
         self.expectedVisibleStatusItemAutosaveNames = expectedVisibleAutosaveNames
@@ -896,7 +908,15 @@ final class StatusItemController: NSObject, NSMenuDelegate, StatusItemControllin
         self.removeProviderStatusItem(for: provider.instanceID)
     }
 
-    private func removeProviderStatusItem(for instanceID: ProviderInstanceID) {
+    /// Shared with the user-plugin status-item seam: plugin items reuse the provider removal path so
+    /// placement preservation and icon-signature cleanup behave identically.
+    func removeProviderStatusItem(for instanceID: ProviderInstanceID) {
+        // Standalone plugin items keep their card menu with the item: every removal path (toggle off,
+        // plugin removal, Merge Icons on, placement recovery) clears the seam dictionaries here.
+        if let menu = self.pluginStatusItemMenus.removeValue(forKey: instanceID) {
+            menu.delegate = nil
+        }
+        self.pluginStatusItemMenuDelegates.removeValue(forKey: instanceID)
         if let menu = self.providerMenus.removeValue(forKey: instanceID) {
             let menuID = ObjectIdentifier(menu)
             if menuID == self.providerSwitcherShortcutMenuID {
