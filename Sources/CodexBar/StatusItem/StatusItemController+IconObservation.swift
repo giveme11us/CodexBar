@@ -23,7 +23,7 @@ extension StatusItemController {
                 showBrandPercent: showBrandPercent)
         } else {
             primaryProvider = nil
-            providerSignatures = UsageProvider.allCases
+            let firstPartySignatures = UsageProvider.allCases
                 .filter { self.isVisible($0) }
                 .map {
                     self.providerStoreIconObservationSignature(for: $0.instanceID, showBrandPercent: showBrandPercent)
@@ -32,11 +32,11 @@ extension StatusItemController {
             // Standalone plugin status items follow their own snapshot/error/source changes so the
             // store-icon observer re-renders them even though they are not first-party providers.
             let pluginSignatures = self.userPluginStatusItemObservationSignatures(showBrandPercent: showBrandPercent)
-            if !pluginSignatures.isEmpty {
-                providerSignatures = ([providerSignatures] + pluginSignatures)
-                    .filter { !$0.isEmpty }
-                    .joined(separator: "||")
-            }
+            providerSignatures = pluginSignatures.isEmpty
+                ? firstPartySignatures
+                : ([firstPartySignatures] + pluginSignatures)
+                .filter { !$0.isEmpty }
+                .joined(separator: "||")
         }
         return [
             "merge=\(mergeIcons ? "1" : "0")",

@@ -155,14 +155,15 @@ public struct PreferencesDocument: Codable, Sendable {
                     }
                 }
             case .object:
-                valid = key == "switcherShortcuts" || key == "pluginTopLevelStatusItems"
                 if key == "switcherShortcuts" {
                     _ = try ProviderSwitcherShortcuts.validated(self.value(key) ?? [:])
-                }
-                if key == "pluginTopLevelStatusItems" {
+                    valid = true
+                } else if key == "pluginTopLevelStatusItems" {
                     let flags: [String: Bool] = try self.value(key) ?? [:]
                     // Keys are plugin instance IDs; keep the projection free of opaque or malformed IDs.
                     valid = flags.keys.allSatisfy { ProviderInstanceID(rawValue: $0) != nil }
+                } else {
+                    valid = false
                 }
             default: valid = false
             }
