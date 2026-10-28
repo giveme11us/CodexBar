@@ -50,7 +50,7 @@ public struct PreferencesDocument: Codable, Sendable {
     private static var keys: Set<String> {
         self.boolKeys.union(self.stringChoices.keys).union(self.thresholdKeys).union([
             "weeklyProgressWorkDays", "preferredCurrencyCode", "mergedOverviewSelectedProviders",
-            "switcherShortcuts",
+            "switcherShortcuts", "pluginTopLevelStatusItems",
         ])
     }
 
@@ -155,8 +155,15 @@ public struct PreferencesDocument: Codable, Sendable {
                     }
                 }
             case .object:
-                valid = key == "switcherShortcuts"
-                if valid { _ = try ProviderSwitcherShortcuts.validated(self.value(key) ?? [:]) }
+                valid = key == "switcherShortcuts" || key == "pluginTopLevelStatusItems"
+                if key == "switcherShortcuts" {
+                    _ = try ProviderSwitcherShortcuts.validated(self.value(key) ?? [:])
+                }
+                if key == "pluginTopLevelStatusItems" {
+                    let flags: [String: Bool] = try self.value(key) ?? [:]
+                    // Keys are plugin instance IDs; keep the projection free of opaque or malformed IDs.
+                    valid = flags.keys.allSatisfy { ProviderInstanceID(rawValue: $0) != nil }
+                }
             default: valid = false
             }
             guard valid else { throw Error.invalid("Invalid or non-portable preference: \(key)") }

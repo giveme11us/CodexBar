@@ -19,6 +19,7 @@ extension SettingsStore {
                     .map(\.rawValue))
         }
         try document.set("switcherShortcuts", self.providerSwitcherShortcuts)
+        try document.set("pluginTopLevelStatusItems", self.pluginTopLevelStatusItemsRaw)
         return document
     }
 
@@ -50,6 +51,10 @@ extension SettingsStore {
         }
         if let value: [String: String] = try document.value("switcherShortcuts") {
             try self.setProviderSwitcherShortcuts(value)
+        }
+        if let value: [String: Bool] = try document.value("pluginTopLevelStatusItems") {
+            // Drop malformed IDs instead of rejecting the whole portable document.
+            self.pluginTopLevelStatusItemsRaw = value.filter { ProviderInstanceID(rawValue: $0.key) != nil }
         }
     }
 

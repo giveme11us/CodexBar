@@ -384,6 +384,29 @@ extension SettingsStore {
         set { self.setDefault(\.menuBarMetricPreferencesRaw, newValue, key: "menuBarMetricPreferences") }
     }
 
+    /// Per-plugin "Show as separate menu bar icon" opt-in. Absent means OFF: separate items need an
+    /// explicit per-plugin choice even when the manifest already allows top-level placement.
+    var pluginTopLevelStatusItemsRaw: [String: Bool] {
+        get { self.defaultsState.pluginTopLevelStatusItemsRaw }
+        set { self.setDefault(\.pluginTopLevelStatusItemsRaw, newValue, key: "pluginTopLevelStatusItems") }
+    }
+
+    func isPluginTopLevelStatusItemEnabled(_ instanceID: ProviderInstanceID) -> Bool {
+        self.defaultsState.pluginTopLevelStatusItemsRaw[instanceID.rawValue] ?? false
+    }
+
+    func setPluginTopLevelStatusItemEnabled(_ instanceID: ProviderInstanceID, enabled: Bool) {
+        var values = self.defaultsState.pluginTopLevelStatusItemsRaw
+        guard values[instanceID.rawValue] != enabled else { return }
+        if enabled {
+            values[instanceID.rawValue] = true
+        } else {
+            // OFF is the default, so disabling drops the entry instead of storing false.
+            values.removeValue(forKey: instanceID.rawValue)
+        }
+        self.pluginTopLevelStatusItemsRaw = values
+    }
+
     var menuBarLayout: MenuBarLayout {
         get {
             self.defaultsState.storedMenuBarLayout ?? MenuBarLayout.migrated(

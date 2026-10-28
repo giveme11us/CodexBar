@@ -47,6 +47,7 @@ struct SettingsDefaultsState {
     var multiAccountMenuLayoutRaw: String
     var accountWidgetsEnabled: Bool
     var menuBarMetricPreferencesRaw: [String: String]
+    var pluginTopLevelStatusItemsRaw: [String: Bool]
     var storedMenuBarLayout: MenuBarLayout?
     var menuBarLayoutConditionals: [MenuBarLayoutConditional]
     var menuBarLayoutOverridesRaw: [String: MenuBarLayout]

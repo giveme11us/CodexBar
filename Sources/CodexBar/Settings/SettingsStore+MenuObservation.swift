@@ -44,6 +44,7 @@ extension SettingsStore {
         _ = self.multiAccountMenuLayout
         _ = self.accountWidgetsEnabled
         _ = self.menuBarMetricPreferencesRaw
+        _ = self.pluginTopLevelStatusItemsRaw
         _ = self.menuBarLayout
         _ = self.menuBarLayoutOverrides
         _ = self.menuBarLayoutMonospacedDigits

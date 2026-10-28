@@ -534,6 +534,8 @@ extension SettingsStore {
         let quotaWarnings = Self.loadQuotaWarningDefaults(userDefaults: userDefaults)
         let multiAccountMenuLayoutRaw = Self.loadMultiAccountMenuLayoutRaw(userDefaults: userDefaults)
         let resolvedPreferences = Self.loadMenuBarMetricPreferences(userDefaults: userDefaults)
+        let pluginTopLevelStatusItemsRaw =
+            userDefaults.dictionary(forKey: "pluginTopLevelStatusItems") as? [String: Bool] ?? [:]
         let storedMenuBarLayout = Self.loadMenuBarLayout(userDefaults: userDefaults)
         let menuBarLayoutConditionals = Self.loadMenuBarLayoutConditionals(userDefaults: userDefaults)
         let menuBarLayoutOverridesRaw = Self.loadMenuBarLayoutOverrides(userDefaults: userDefaults)
@@ -628,6 +630,7 @@ extension SettingsStore {
             multiAccountMenuLayoutRaw: multiAccountMenuLayoutRaw,
             accountWidgetsEnabled: userDefaults.bool(forKey: "accountWidgetsEnabled"),
             menuBarMetricPreferencesRaw: resolvedPreferences,
+            pluginTopLevelStatusItemsRaw: pluginTopLevelStatusItemsRaw,
             storedMenuBarLayout: storedMenuBarLayout,
             menuBarLayoutConditionals: menuBarLayoutConditionals,
             menuBarLayoutOverridesRaw: menuBarLayoutOverridesRaw,
