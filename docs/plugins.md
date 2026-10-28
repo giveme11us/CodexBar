@@ -164,6 +164,8 @@ defineProvider({
   Plugin tabs show a quota gauge using the [menu-bar percentage preference](#menu-bar-percentage). With Auto, they
   use the most constrained reported seven-day window, otherwise the first available primary, secondary, tertiary,
   or extra window. They follow the used/remaining display preference; unknown usage stays unavailable.
+  With Merge Icons disabled, an enabled plugin with `topLevel: true` can also get its own menu-bar status item
+  through the per-plugin **Show as separate menu bar icon** toggle (see [Provider switcher tabs](#provider-switcher-tabs)).
   Merged meter icons use the primary window for the thick lane and the secondary window for the
   thin lane, following the used/remaining preference. When both are absent, the existing tertiary/extra-window
   single-meter fallback remains.
@@ -549,6 +551,21 @@ Enabled user plugins get their own tab by default when **Merge Icons** is enable
 The tab uses the manifest name and icon. Selecting it shows that plugin’s usage followed by any enabled plugins with
 explicit `topLevel: false`, which keeps the appended-card placement under provider tabs and Overview. With Merge Icons
 disabled, all plugins retain appended-card placement regardless of `topLevel`.
+
+### Separate menu bar icon
+
+With Merge Icons disabled, an installed plugin whose manifest keeps `topLevel: true` can additionally get its own
+status item at the same level as the built-in providers. **Settings → Plugins → Show as separate menu bar icon**
+controls this per plugin; it is off by default, so appended-card placement stays unchanged until you enable it.
+The toggle is offered only for top-level plugins; built-in providers keep their regular menu-bar item.
+
+The item shows the manifest icon (validated SVG or monogram tile) plus the percentage from the plugin’s
+**Menu bar metric** picker, following the used/remaining display preference; the meter icon is used when
+brand-with-percent display is off. Clicking the item opens a menu holding that plugin’s card — usage, refresh
+button, errors, and the last update time — the same card used under provider tabs. The item appears when the
+toggle turns on and is removed when it turns off, when the plugin is disabled or deleted, or when Merge Icons
+is re-enabled; placement is preserved like the built-in items. Refreshes and errors update the item like any
+provider icon.
 
 A single plugin works without a redundant switcher, and multiple plugin tabs work even with no built-in providers
 enabled. Refresh and Cmd-R refresh the selected plugin; each card’s refresh button targets that card. Completed

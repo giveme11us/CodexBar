@@ -362,7 +362,8 @@ and tick appearance; usage/reset display; local cost display, comparisons and su
 blink/confetti effects, highest-usage selection, optional credits/extra usage, changelog links, currency
 and alphabetical provider sorting. JSON keys match the `SyncedPreferences` fields. It additionally includes
 `limitResetNotificationsEnabled`, `mergeIcons`, `mergeIconsStacked`, `switcherShowsIcons`, `mergedOverviewLayout`,
-`mergedOverviewSelectedProviders`, and `switcherShortcuts`. An overview selection is applied intentionally
+`mergedOverviewSelectedProviders`, `switcherShortcuts`, and the per-plugin `pluginTopLevelStatusItems` map behind
+**Settings → Plugins → Show as separate menu bar icon**. An overview selection is applied intentionally
 to the receiving Mac's active providers, including an empty selection. `weeklyProgressWorkDays: null`
 restores the seven-day default. Missing keys leave the receiving Mac's settings unchanged. Unknown preference keys,
 unsupported versions, invalid types and invalid shortcut mappings are rejected before applying changes.
