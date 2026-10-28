@@ -81,11 +81,14 @@ extension StatusItemController {
         let hasTopLevelSwitcher = self.shouldMergeIcons &&
             self.switcherProviderIDs(
                 enabledFirstPartyProviders: self.store.enabledFirstPartyProvidersForDisplay()).count > 1
+        // A plugin with its own menu bar icon already shows its card there; skip the appended copy.
+        let standaloneIDs = Set(self.userPluginStatusItemPlugins().map(\.manifest.id))
         let plugins = Self.userPluginsForMenu(
             UserProviderPluginRegistry.all,
             isEnabled: self.settings.isPluginEnabled,
             topLevelSwitcherVisible: hasTopLevelSwitcher,
             selectedPluginID: selectedPluginID)
+            .filter { selectedPluginID != nil || !standaloneIDs.contains($0.manifest.id) }
         guard !plugins.isEmpty else { return }
         if !menu.items.isEmpty, menu.items.last?.isSeparatorItem != true {
             menu.addItem(.separator())
